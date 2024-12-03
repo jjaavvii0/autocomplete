@@ -1,5 +1,5 @@
-import { SuggestedWord } from "./SuggestedWord";
+import { SuggestedWords } from "./SuggestedWords";
 
 export interface IAutocompleteRepo {
-    getSuggestions(word: string): Promise<SuggestedWord>;
+    getSuggestions(word: string): Promise<SuggestedWords>;
 }
