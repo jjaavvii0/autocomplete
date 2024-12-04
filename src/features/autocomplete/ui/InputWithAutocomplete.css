@@ -14,3 +14,21 @@ select option {
     width: 300px;
     margin: 0 auto;
 }
+.suggestions-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid white;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: black;
+}
+
+.suggestion-item {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.suggestion-item.highlighted {
+    background-color: blue;
+}
