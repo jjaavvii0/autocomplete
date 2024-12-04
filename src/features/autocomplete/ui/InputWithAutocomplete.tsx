@@ -9,11 +9,13 @@ export const InputWithAutocomplete = () => {
     const [inputData, setInputData] = useState<string>("");
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+    const [showSuggestions, setShowSuggestions] = useState(true);
     const inputRef = useRef<HTMLInputElement>(null);
     const debouncedInput = useDebounce(inputData, 200);
 
     const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
+        setShowSuggestions(true);
         setInputData(e.target.value);
     };
 
@@ -29,13 +31,13 @@ export const InputWithAutocomplete = () => {
     }, []);
 
     useEffect(() => {
-        if (debouncedInput.trim()) {
+        if (debouncedInput.trim() && showSuggestions) {
             const lastWord = debouncedInput.trim().split(" ").pop() || "";
             fetchSuggestions(lastWord);
         } else {
             setSuggestions([]);
         }
-    }, [debouncedInput, fetchSuggestions]);
+    }, [debouncedInput, fetchSuggestions, showSuggestions]);
 
     useEffect(() => {
         if (highlightedIndex >= 0) {
@@ -78,6 +80,7 @@ export const InputWithAutocomplete = () => {
         if (inputRef.current) {
             inputRef.current.focus();
         }
+        setShowSuggestions(false);
     };
 
     const handleSuggestionHover = (index: number) => {
