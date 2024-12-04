@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { SuggestedWords } from "../domain/SuggestedWords";
 import { autocompleteRepository } from "../infrastructure/AutocompleteRepo";
+import { useDebounce } from "@shared/index";
 
 export const InputWithAutocomplete = () => {
     const [inputData, setInputData] = useState<string>("");
@@ -14,17 +15,15 @@ export const InputWithAutocomplete = () => {
     const handleChangeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedOption(e.target.value);
     };
+    const debouncedInput = useDebounce(inputData, 200);
+
     useEffect(() => {
         const fetchSuggestions = async () => {
-            if (inputData.trim() === "") {
-                setSuggestions([]);
-                return;
-            }
-            const splittedWOrds = inputData.split(" ");
+            const splittedWords = debouncedInput.split(" ");
             try {
                 const result: SuggestedWords =
                     await autocompleteRepository.getSuggestions(
-                        splittedWOrds.pop() || inputData
+                        splittedWords.pop() || debouncedInput
                     );
                 setSuggestions(result.suggestions);
             } catch (error) {
@@ -33,8 +32,12 @@ export const InputWithAutocomplete = () => {
             }
         };
 
-        fetchSuggestions();
-    }, [inputData]);
+        if (debouncedInput.trim()) {
+            fetchSuggestions();
+        } else {
+            setSuggestions([]);
+        }
+    }, [debouncedInput]);
 
     useEffect(() => {
         const changeWord = async () => {
@@ -57,17 +60,15 @@ export const InputWithAutocomplete = () => {
                     gap: "10px",
                 }}
             >
-                <label>
-                    Check our suggestion tool:{" "}
-                    <input
-                        value={inputData}
-                        onChange={handleChangeInput}
-                        name="autocomplete-input"
-                    ></input>
-                </label>
+                <div>Check our suggestion tool:</div>
+                <input
+                    value={inputData}
+                    onChange={handleChangeInput}
+                    name="autocomplete-input"
+                ></input>
                 {suggestions.length > 0 && (
                     <select
-                        size={20}
+                        size={Math.min(20, suggestions.length)}
                         onChange={handleChangeSelect}
                     >
                         {suggestions.map((suggestion, index) => (
