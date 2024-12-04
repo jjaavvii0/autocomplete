@@ -1,54 +1,24 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { SuggestedWords } from "../domain/SuggestedWords";
-import { autocompleteRepository } from "../infrastructure/AutocompleteRepo";
-import { useDebounce } from "@shared/index";
+import { useState, useRef } from "react";
+import { useAutocomplete } from "../hooks/useAutocomplete";
 import { SuggestionsBox } from "./SuggestionsBox";
 import "./InputWithAutocomplete.css";
 
 export const InputWithAutocomplete = () => {
     const [inputData, setInputData] = useState<string>("");
-    const [suggestions, setSuggestions] = useState<string[]>([]);
     const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
     const [showSuggestions, setShowSuggestions] = useState(true);
     const inputRef = useRef<HTMLInputElement>(null);
-    const debouncedInput = useDebounce(inputData, 200);
+
+    const { suggestions, setSuggestions } = useAutocomplete(
+        inputData,
+        showSuggestions
+    );
 
     const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setShowSuggestions(true);
         setInputData(e.target.value);
     };
-
-    const fetchSuggestions = useCallback(async (word: string) => {
-        try {
-            const result: SuggestedWords =
-                await autocompleteRepository.getSuggestions(word);
-            setSuggestions(result.suggestions);
-        } catch (error) {
-            console.error("Error fetching suggestions:", error);
-            setSuggestions([]);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (debouncedInput.trim() && showSuggestions) {
-            const lastWord = debouncedInput.trim().split(" ").pop() || "";
-            fetchSuggestions(lastWord);
-        } else {
-            setSuggestions([]);
-        }
-    }, [debouncedInput, fetchSuggestions, showSuggestions]);
-
-    useEffect(() => {
-        if (highlightedIndex >= 0) {
-            const activeItem = document.querySelector(
-                `.suggestion-item.highlighted`
-            ) as HTMLElement;
-            if (activeItem) {
-                activeItem.scrollIntoView({ block: "nearest" });
-            }
-        }
-    }, [highlightedIndex]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "ArrowDown") {

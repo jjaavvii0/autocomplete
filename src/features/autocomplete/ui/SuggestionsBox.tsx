@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import "./SuggestionsBox.css";
-
 interface SuggestionsBoxProps {
     suggestions: string[];
     highlightedIndex: number;
@@ -14,11 +13,22 @@ export const SuggestionsBox: React.FC<SuggestionsBoxProps> = ({
     onSuggestionClick,
     onSuggestionHover,
 }) => {
+    const itemsRef = useRef<(HTMLLIElement | null)[]>([]);
+
+    useEffect(() => {
+        if (highlightedIndex >= 0 && itemsRef.current[highlightedIndex]) {
+            itemsRef.current[highlightedIndex]?.scrollIntoView({
+                block: "nearest",
+            });
+        }
+    }, [highlightedIndex]);
+
     return (
         <ul className="suggestions-list">
             {suggestions.map((suggestion, index) => (
                 <li
                     key={index}
+                    ref={(element) => (itemsRef.current[index] = element)}
                     className={`suggestion-item ${
                         index === highlightedIndex ? "highlighted" : ""
                     }`}
