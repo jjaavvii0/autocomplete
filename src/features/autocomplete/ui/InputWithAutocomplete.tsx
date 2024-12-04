@@ -1,70 +1,70 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { SuggestedWords } from "../domain/SuggestedWords";
 import { autocompleteRepository } from "../infrastructure/AutocompleteRepo";
 import { useDebounce } from "@shared/index";
+import "./InputWithAutocomplete.css";
 
 export const InputWithAutocomplete = () => {
     const [inputData, setInputData] = useState<string>("");
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [selectedOption, setSelectedOption] = useState<string>("");
+    const inputRef = useRef<HTMLInputElement>(null);
+    const debouncedInput = useDebounce(inputData, 200);
 
     const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         setInputData(e.target.value);
     };
     const handleChangeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        e.preventDefault();
         setSelectedOption(e.target.value);
     };
-    const debouncedInput = useDebounce(inputData, 200);
-
+    const fetchSuggestions = useCallback(async (word: string) => {
+        try {
+            const result: SuggestedWords =
+                await autocompleteRepository.getSuggestions(word);
+            setSuggestions(result.suggestions);
+        } catch (error) {
+            console.error("Error fetching suggestions:", error);
+            setSuggestions([]);
+        }
+    }, []);
     useEffect(() => {
-        const fetchSuggestions = async () => {
-            const splittedWords = debouncedInput.split(" ");
-            try {
-                const result: SuggestedWords =
-                    await autocompleteRepository.getSuggestions(
-                        splittedWords.pop() || debouncedInput
-                    );
-                setSuggestions(result.suggestions);
-            } catch (error) {
-                console.error("Error fetching suggestions:", error);
-                setSuggestions([]);
-            }
-        };
-
         if (debouncedInput.trim()) {
-            fetchSuggestions();
+            const lastWord = debouncedInput.trim().split(" ").pop() || "";
+            fetchSuggestions(lastWord);
         } else {
             setSuggestions([]);
         }
-    }, [debouncedInput]);
+    }, [debouncedInput, fetchSuggestions]);
 
     useEffect(() => {
         const changeWord = async () => {
-            setInputData((prev) => {
-                const words = prev.trim().split(" ");
-                words.pop();
+            if (selectedOption.length > 0) {
+                setInputData((prev) => {
+                    const words = prev.trim().split(" ");
+                    words.pop();
 
-                return [...words, selectedOption].join(" ") + " ";
-            });
+                    return [...words, selectedOption].join(" ") + " ";
+                });
+                if (inputRef.current) {
+                    inputRef.current.focus();
+                }
+                setSuggestions([]);
+            }
         };
         changeWord();
     }, [selectedOption]);
+
     return (
         <>
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    gap: "10px",
-                }}
-            >
-                <div>Check our suggestion tool:</div>
+            <section className="section-autocomplete">
                 <input
+                    ref={inputRef}
                     value={inputData}
                     onChange={handleChangeInput}
                     name="autocomplete-input"
+                    placeholder="Type here..."
                 ></input>
                 {suggestions.length > 0 && (
                     <select
@@ -81,7 +81,7 @@ export const InputWithAutocomplete = () => {
                         ))}
                     </select>
                 )}
-            </div>
+            </section>
         </>
     );
 };
