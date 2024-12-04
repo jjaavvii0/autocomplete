@@ -8,7 +8,7 @@ export const useAutocomplete = (
     showSuggestions: boolean
 ) => {
     const [suggestions, setSuggestions] = useState<string[]>([]);
-    const debouncedInput = useDebounce(inputData, 200);
+    const debouncedInput = useDebounce(inputData, 300);
 
     const fetchSuggestions = useCallback(async (word: string) => {
         try {

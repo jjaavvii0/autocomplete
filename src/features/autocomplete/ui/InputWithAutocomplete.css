@@ -1,34 +1,25 @@
-select {
+.input-field {
     width: 100%;
-    padding: 5px;
-    font-size: 14px;
-}
-select option {
-    padding: 2px;
-}
-
-.section-autocomplete {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 300px;
-    margin: 0 auto;
-}
-.suggestions-list {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    border: 1px solid white;
-    max-height: 200px;
-    overflow-y: auto;
-    background-color: black;
+    padding: 12px;
+    font-size: 1.5em;
+    line-height: 1.5;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    resize: vertical;
 }
 
-.suggestion-item {
-    padding: 8px;
-    cursor: pointer;
+.input-field::placeholder {
+    color: #aaa;
 }
 
-.suggestion-item.highlighted {
-    background-color: blue;
+.input-container {
+    position: relative;
+    max-width: 600px;
+    margin: auto;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #007bff;
 }

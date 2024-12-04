@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useAutocomplete } from "../hooks/useAutocomplete";
 import { SuggestionsBox } from "./SuggestionsBox";
 import "./InputWithAutocomplete.css";
@@ -7,20 +7,20 @@ export const InputWithAutocomplete = () => {
     const [inputData, setInputData] = useState<string>("");
     const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
     const [showSuggestions, setShowSuggestions] = useState(true);
-    const inputRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
     const { suggestions, setSuggestions } = useAutocomplete(
         inputData,
         showSuggestions
     );
 
-    const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChangeInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         e.preventDefault();
         setShowSuggestions(true);
         setInputData(e.target.value);
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "ArrowDown") {
             setHighlightedIndex((prev) =>
                 Math.min(prev + 1, suggestions.length - 1)
@@ -39,36 +39,41 @@ export const InputWithAutocomplete = () => {
         }
     };
 
-    const handleSuggestionClick = (suggestion: string) => {
-        setInputData((prev) => {
-            const words = prev.trim().split(" ");
-            words.pop();
-            return [...words, suggestion].join(" ") + " ";
-        });
-        setSuggestions([]);
-        setHighlightedIndex(-1);
-        if (inputRef.current) {
-            inputRef.current.focus();
-        }
-        setShowSuggestions(false);
-    };
+    const handleSuggestionClick = useCallback(
+        (suggestion: string) => {
+            setInputData((prev) => {
+                const words = prev.trim().split(" ");
+                words.pop();
+                return [...words, suggestion].join(" ") + " ";
+            });
+            setSuggestions([]);
+            setHighlightedIndex(-1);
+            setShowSuggestions(false);
+            if (inputRef.current) {
+                inputRef.current.focus();
+            }
+        },
+        [setInputData, setSuggestions]
+    );
 
-    const handleSuggestionHover = (index: number) => {
+    const handleSuggestionHover = useCallback((index: number) => {
         setHighlightedIndex(index);
-    };
+    }, []);
 
     return (
         <section className="section-autocomplete">
-            <input
+            <textarea
                 ref={inputRef}
+                className="input-field"
                 value={inputData}
                 onChange={handleChangeInput}
                 onKeyDown={handleKeyDown}
                 name="autocomplete-input"
                 placeholder="Type here..."
             />
-            {suggestions.length > 0 && (
+            {suggestions.length > 0 && showSuggestions && (
                 <SuggestionsBox
+                    searchText={inputData}
                     suggestions={suggestions}
                     highlightedIndex={highlightedIndex}
                     onSuggestionClick={handleSuggestionClick}
